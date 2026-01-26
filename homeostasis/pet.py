@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
 from homeostasis.common import PersonalityMatrix, Stats
-from homeostasis.items.food import FoodItem
-from homeostasis.items.play import PLAY_ITEMS, PlayItem
+from homeostasis.items.base import ItemInstance
+from homeostasis.items.food import register_food_items
+from homeostasis.items.play import register_play_items
 
 
 @dataclass
@@ -26,43 +27,48 @@ class Pet:
         self.stats: Stats = stats
         self.personality: PersonalityMatrix = personality
 
-
-    def eat(self, food: FoodItem):
-        """Feed the pet a food item, adjusting stats based on food properties."""
-        stats = food.eat(self.personality)
-        self.stats.add_stats(stats)
-
-    def play(self, play_item: PlayItem):
-        """Let the pet play with a play item, adjusting stats based on play item properties."""
-        stats = play_item.play(self.personality)
-        self.stats.add_stats(stats)
-
     def sleep(self):
         """Let the pet sleep, restoring energy."""
         self.stats.energy += 20
         self.stats.clamp_stats()
 
+    def use(self, item: ItemInstance):
+        """Use a generic item on the pet, adjusting stats based on item properties."""
+        stats = item.definition.effect(self.personality)
+        self.stats.add_stats(stats)
+        item.use(1)
+
 if __name__ == "__main__":
     pet = Pet(
         info=PetSpec(name="Buddy", age=3, style="Casual"),
-        personality=PersonalityMatrix(friendliness=5, playfulness=5, laziness=5, curiosity=5),
+        personality=PersonalityMatrix(friendliness=5, playfulness=3, laziness=10, curiosity=7),
         stats=Stats(
             happiness=50,
             energy=50,
             social=50,
             hunger=50,
             health=50,
+            fun=50,
         ),
     )
 
-    from homeostasis.items.food import FOOD_ITEMS
+    from homeostasis.items.base import ITEMS, ItemInstance
+    register_food_items()
+    register_play_items()
 
-    for food in FOOD_ITEMS.values():
-        print(f"Feeding {pet.info.name} a {food.name}")
-        pet.eat(food)
-        print(f"New stats: {pet.stats}")
-    print("-----")
-    for toy in PLAY_ITEMS.values():
-        print(f"Playing with {pet.info.name} using {toy.name}")
-        pet.play(toy)
-        print(f"New stats: {pet.stats}")
+    FOOD_ITEMS = [item for item in ITEMS.values() if "edible" in item.tags]
+
+    PLAY_ITEMS = [item for item in ITEMS.values() if "playable" in item.tags]
+
+    print("Initial pet stats:", pet.stats)
+    print("=== Using Food Items ===")
+    for food_item in FOOD_ITEMS:
+        item_instance = food_item.spawn()
+        pet.use(item_instance)
+        print(f"After using {food_item.name}, pet stats: {pet.stats}")
+
+    print("=== Using Play Items ===")
+    for play_item in PLAY_ITEMS:
+        item_instance = play_item.spawn()
+        pet.use(item_instance)
+        print(f"After using {play_item.name}, pet stats: {pet.stats}")
