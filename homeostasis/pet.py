@@ -34,8 +34,8 @@ class Pet:
 
     def use(self, item: ItemInstance):
         """Use a generic item on the pet, adjusting stats based on item properties."""
-        stats = item.definition.effect(self.personality)
-        self.stats.add_stats(stats)
+        stat_effects = item.definition.effect(self.personality)
+        self.stats.add_stats(stat_effects)
         item.use(1)
 
 if __name__ == "__main__":

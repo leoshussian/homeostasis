@@ -77,12 +77,11 @@ class ItemInstance:
         Args:
             amount (int): The amount to reduce durability by.
         """
-        for use in range(amount):
+        for _ in range(amount):
             if not self.is_usable():
                 raise ValueError(f"Item '{self.definition.name}' is not usable.")
 
             self.durability -= 1
-            self.durability = max(0, self.durability)
 
         return self.status
 

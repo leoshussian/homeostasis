@@ -58,7 +58,7 @@ class Stats:
             other (Stats): The other Stats to add.
             weights (StatsWeights): The weights to apply to the addition.
         """
-        if not weights:
+        if weights is None:
             weights = StatsWeights(1, 1, 1, 1, 1, 1)
 
         for stat in Stats.__dataclass_fields__: # noqa
