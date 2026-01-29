@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from homeostasis.common import PersonalityMatrix, Stats, StatsWeights
+from homeostasis.common import Traits, Stats, StatsWeights
 
 
 class ItemStatus(Enum):
@@ -29,7 +29,7 @@ class ItemDefinition:
         name (str): The name of the item.
         description (str): A brief description of the item.
         max_durability (int): The maximum durability of the item.
-        personality (PersonalityMatrix): The personality traits associated with the item.
+        personality (Traits): The personality traits associated with the item.
         effects (Stats): The stat effects the item has when used. For example, food items may increase hunger and health.
         effect_weights (StatsWeights): The weights applied to the effects.
             For example, a Food subclass could primarily affect hunger and health, and affect other stats less.
@@ -39,18 +39,18 @@ class ItemDefinition:
     name: str
     description: str
     max_durability: int
-    personality: PersonalityMatrix
+    personality: Traits
     effects: Stats
     effect_weights: StatsWeights = field(default_factory=StatsWeights)
     tags: frozenset[str] = field(default_factory=frozenset)
 
-    def effect(self, pet_personality: PersonalityMatrix) -> Stats:
+    def effect(self, pet_personality: Traits) -> Stats:
         """Calculate the effect of the item based on pet's personality.
 
         Args:
-            pet_personality (PersonalityMatrix): The personality matrix of the pet.
+            pet_personality (Traits): The personality matrix of the pet.
         """
-        compatibility = PersonalityMatrix.get_compatibility(self.personality, pet_personality)
+        compatibility = Traits.get_compatibility(self.personality, pet_personality)
         # Apply effect weights scaled by compatibility
         weighted_effects = self.effect_weights.apply(self.effects, scale=compatibility)
         return weighted_effects

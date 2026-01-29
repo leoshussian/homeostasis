@@ -3,7 +3,7 @@ from typing import Union
 
 
 @dataclass
-class PersonalityMatrix:
+class Traits:
     """Personality traits affecting pet behavior."""
     friendliness: int = 5
     playfulness: int = 5
@@ -15,7 +15,7 @@ class PersonalityMatrix:
         """Calculates compatibility score between two personality matrices."""
         score = 0
         fields = 0
-        for trait in PersonalityMatrix.__dataclass_fields__:  # noqa
+        for trait in Traits.__dataclass_fields__:  # noqa
             value1 = getattr(matrix1, trait)
             value2 = getattr(matrix2, trait)
             score += 10 - abs(value1 - value2)  # Max difference is 10

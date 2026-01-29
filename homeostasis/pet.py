@@ -1,6 +1,8 @@
 from dataclasses import dataclass
+from time import sleep
 
-from homeostasis.common import PersonalityMatrix, Stats
+from homeostasis.action import EatAction
+from homeostasis.common import Traits, Stats
 from homeostasis.items.base import ItemInstance
 from homeostasis.items.food import register_food_items
 from homeostasis.items.play import register_play_items
@@ -20,28 +22,38 @@ class PetDecayRates:
     social_decay: int = 1
     hunger_decay: int = 1
 
+class BusyPetException(Exception):
+    """The pet is currently busy with another action."""
+    pass
 
 class Pet:
-    def __init__(self, info: PetSpec, personality: PersonalityMatrix, stats: Stats) -> None:
+    def __init__(self, info: PetSpec, personality: Traits, stats: Stats) -> None:
         self.info: PetSpec = info
         self.stats: Stats = stats
-        self.personality: PersonalityMatrix = personality
+        self.personality: Traits = personality
+        self.current_action = None
 
-    def sleep(self):
-        """Let the pet sleep, restoring energy."""
-        self.stats.energy += 20
-        self.stats.clamp_stats()
+    @property
+    def is_busy(self) -> bool:
+        return self.current_action is not None
 
-    def use(self, item: ItemInstance):
-        """Use a generic item on the pet, adjusting stats based on item properties."""
-        stat_effects = item.definition.effect(self.personality)
-        self.stats.add_stats(stat_effects)
-        item.use(1)
+    def set_action(self, action) -> None:
+        """Set the current action for the pet."""
+        if self.is_busy:
+            raise BusyPetException
+        self.current_action = action
+
+    def tick(self) -> None:
+        """Advance the pet's current action by one tick."""
+        if self.current_action is not None:
+            self.current_action.tick(self)
+            if self.current_action.is_complete():
+                self.current_action = None
 
 if __name__ == "__main__":
     pet = Pet(
         info=PetSpec(name="Buddy", age=3, style="Casual"),
-        personality=PersonalityMatrix(friendliness=5, playfulness=3, laziness=10, curiosity=7),
+        personality=Traits(friendliness=5, playfulness=3, laziness=10, curiosity=7),
         stats=Stats(
             happiness=50,
             energy=50,
@@ -64,11 +76,10 @@ if __name__ == "__main__":
     print("=== Using Food Items ===")
     for food_item in FOOD_ITEMS:
         item_instance = food_item.spawn()
-        pet.use(item_instance)
-        print(f"After using {food_item.name}, pet stats: {pet.stats}")
-
-    print("=== Using Play Items ===")
-    for play_item in PLAY_ITEMS:
-        item_instance = play_item.spawn()
-        pet.use(item_instance)
-        print(f"After using {play_item.name}, pet stats: {pet.stats}")
+        action = EatAction(item_instance)
+        pet.set_action(action)
+        while pet.is_busy:
+            print(f"Feeding {food_item.name}...")
+            pet.tick()
+            sleep(2) # Simulate time passing
+        print(f"After eating {food_item.name}, pet stats: {pet.stats}")
