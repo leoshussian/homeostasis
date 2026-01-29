@@ -27,8 +27,11 @@ class Traits:
         return score
 
 @dataclass
-class Stats:
-    """Represents the core stats of the pet.
+class Motives:
+    """Represents the core motives of the pet.
+
+    Items and actions can modify a pet's motives by applying another Stats object,
+    optionally with weights to scale the effect on each stat.
 
     Attributes:
         happiness (int): The pet's happiness level (0-100).
@@ -45,23 +48,23 @@ class Stats:
     fun: float = 0
 
     def clamp_stats(self):
-        """Ensure all stats are within the range 0-100."""
-        for stat in Stats.__dataclass_fields__: # noqa
+        """Ensure all motives are within the range 0-100."""
+        for stat in Motives.__dataclass_fields__: # noqa
             value = getattr(self, stat)
             clamped_value = max(0, min(100, value))
             setattr(self, stat, clamped_value)
 
-    def add_stats(self, other: 'Stats', weights: Union['StatsWeights', None] = None) -> None:
+    def add_stats(self, other: 'Motives', weights: Union['MotivesModifier', None] = None) -> None:
         """Add another PetStats to this one and apply weights.
 
         Args:
-            other (Stats): The other Stats to add.
-            weights (StatsWeights): The weights to apply to the addition.
+            other (Motives): The other Stats to add.
+            weights (MotivesModifier): The weights to apply to the addition.
         """
         if weights is None:
-            weights = StatsWeights(1, 1, 1, 1, 1, 1)
+            weights = MotivesModifier(1, 1, 1, 1, 1, 1)
 
-        for stat in Stats.__dataclass_fields__: # noqa
+        for stat in Motives.__dataclass_fields__: # noqa
             current_value = getattr(self, stat)
             addition_value = getattr(other, stat)
             weight = getattr(weights, stat)
@@ -70,7 +73,8 @@ class Stats:
         self.clamp_stats()
 
 @dataclass
-class StatsWeights:
+class MotivesModifier:
+    """Weights to modify the effect of Motives changes."""
     happiness: float = 1
     energy: float = 1
     social: float = 1
@@ -78,20 +82,20 @@ class StatsWeights:
     health: float = 1
     fun: float = 1
 
-    def apply(self, stats: Stats, scale: float = 1.0) -> Stats:
+    def apply(self, stats: Motives, scale: float = 1.0) -> Motives:
         """Apply weights to a scale factor and return as Stats.
 
         Args:
-            stats (Stats): The base stats to apply weights to.
+            stats (Motives): The base motives to apply weights to.
             scale (float): The scale factor to apply.
 
         Returns:
-            Stats: The resulting Stats after applying weights and scale.
+            Motives: The resulting Stats after applying weights and scale.
         """
         values = {}
-        for stat in Stats.__dataclass_fields__: # noqa
+        for stat in Motives.__dataclass_fields__: # noqa
             # Get the current value of stat, multiply by weight, and scale
             value = getattr(stats, stat) * getattr(self, stat) * scale
             values[stat] = value
 
-        return Stats(**values)
+        return Motives(**values)

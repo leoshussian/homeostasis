@@ -1,4 +1,4 @@
-from homeostasis.common import Traits, Stats, StatsWeights
+from homeostasis.common import Traits, Motives, MotivesModifier
 from homeostasis.items.base import ItemDefinition, register_item
 
 def register_food_items():
@@ -9,7 +9,7 @@ def register_food_items():
         description="An exotic sauce made from ground fufu seeds.",
         max_durability=1,
         personality=Traits(9, 9, 2, 10),
-        effects=Stats(happiness=6, hunger=35, health=50),
+        effects=Motives(happiness=6, hunger=35, health=50),
         tags=frozenset({"edible"}),
     ))
 
@@ -18,7 +18,7 @@ def register_food_items():
         description="A classic cocktail with gin and olive brine.",
         max_durability=1,
         personality=Traits(3, 8, 5, 7),
-        effects=Stats(happiness=4, hunger=5, health=-5),
+        effects=Motives(happiness=4, hunger=5, health=-5),
         tags=frozenset({"edible", "alcohol"}),
     ))
 
@@ -27,7 +27,7 @@ def register_food_items():
         description="Quick, spicy instant noodles.",
         max_durability=1,
         personality=Traits(7, 6, 8, 5),
-        effects=Stats(happiness=4, hunger=20, health=-15),
+        effects=Motives(happiness=4, hunger=20, health=-15),
         tags=frozenset({"edible"}),
     ))
 
@@ -36,7 +36,7 @@ def register_food_items():
         description="A selection of artisanal vegan cheeses.",
         max_durability=1,
         personality=Traits(8, 2, 4, 9),
-        effects=Stats(happiness=5, hunger=30, health=25),
+        effects=Motives(happiness=5, hunger=30, health=25),
         tags=frozenset({"edible"}),
     ))
 
@@ -45,16 +45,16 @@ def register_food_items():
         description="A classic Middle Eastern snack.",
         max_durability=1,
         personality=Traits(2, 5, 7, 6),
-        effects=Stats(happiness=4, hunger=40, health=40),
+        effects=Motives(happiness=4, hunger=40, health=40),
         tags=frozenset({"edible"}),
     ))
 
     register_item(ItemDefinition(
         name="Chocolate Lava Cake",
-        description="A decadent dessert with molten center.",
+        description="A decadent dessert with molten centre.",
         max_durability=1,
         personality=Traits(9, 9, 3, 8),
-        effects=Stats(happiness=8, hunger=25, health=-10),
+        effects=Motives(happiness=8, hunger=25, health=-10),
         tags=frozenset({"edible", "dessert"}),
     ))
 
@@ -63,7 +63,7 @@ def register_food_items():
         description="A healthy salad with quinoa and avocado.",
         max_durability=1,
         personality=Traits(6, 4, 5, 9),
-        effects=Stats(happiness=5, hunger=35, health=45),
+        effects=Motives(happiness=5, hunger=35, health=45),
         tags=frozenset({"edible", "healthy"}),
     ))
 

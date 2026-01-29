@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from enum import Enum
 
-from homeostasis.common import Traits, Stats, StatsWeights
+from homeostasis.common import Traits, Motives, MotivesModifier
 
 
 class ItemStatus(Enum):
@@ -30,9 +30,9 @@ class ItemDefinition:
         description (str): A brief description of the item.
         max_durability (int): The maximum durability of the item.
         personality (Traits): The personality traits associated with the item.
-        effects (Stats): The stat effects the item has when used. For example, food items may increase hunger and health.
-        effect_weights (StatsWeights): The weights applied to the effects.
-            For example, a Food subclass could primarily affect hunger and health, and affect other stats less.
+        effects (Motives): The stat effects the item has when used. For example, food items may increase hunger and health.
+        effect_weights (MotivesModifier): The weights applied to the effects.
+            For example, a Food subclass could primarily affect hunger and health, and affect other motives less.
             This allows for someone adding an item to set `effects` based on other items of the same type instead of all items.
         tags (frozenset[str]): What the item is. "edible", "playable", etc.
     """
@@ -40,11 +40,11 @@ class ItemDefinition:
     description: str
     max_durability: int
     personality: Traits
-    effects: Stats
-    effect_weights: StatsWeights = field(default_factory=StatsWeights)
+    effects: Motives
+    effect_weights: MotivesModifier = field(default_factory=MotivesModifier)
     tags: frozenset[str] = field(default_factory=frozenset)
 
-    def effect(self, pet_personality: Traits) -> Stats:
+    def effect(self, pet_personality: Traits) -> Motives:
         """Calculate the effect of the item based on pet's personality.
 
         Args:
