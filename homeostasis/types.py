@@ -1,0 +1,1 @@
+type Ticks = int

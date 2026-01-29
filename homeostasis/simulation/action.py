@@ -1,8 +1,11 @@
 from __future__ import annotations
+
+from collections.abc import Collection
 from typing import TYPE_CHECKING
 
-from homeostasis.common import Stats
+from homeostasis.common import Motives
 from homeostasis.items.base import ItemInstance
+from homeostasis.types import Ticks
 
 if TYPE_CHECKING:
     from homeostasis.pet import Pet
@@ -12,7 +15,7 @@ class ActionInterruptException(Exception):
     pass
 
 class Action:
-    def __init__(self, name: str, remaining_ticks: int) -> None:
+    def __init__(self, name: str, remaining_ticks: Ticks) -> None:
         self.name = name
         self.remaining_ticks = remaining_ticks
 
@@ -50,15 +53,38 @@ class SleepAction(Action):
 
     def on_tick(self, pet: Pet) -> None:
         """Increase energy stat each tick."""
-        pet.stats.add_stats(Stats(energy=2))
-        if pet.stats.energy >= 100:
+        pet.motives.add_stats(Motives(energy=2))
+        if pet.motives.energy >= 100:
             self.remaining_ticks = 0
 
     def on_complete(self, pet: Pet) -> None:
         pass
 
+class ItemAction(Action):
+    def __init__(self, name: str, remaining_ticks: Ticks, item: ItemInstance, tags: Collection[str]) -> None:
+        if all(tags not in item.definition.tags):
+            raise ValueError(f"Item is not {tags}.")
+
+        self.item = item
+        super().__init__(name, remaining_ticks)
+
+    def on_tick(self, pet: Pet) -> None:
+        """Increase fun and social motives each tick."""
+        # Decrease item durability
+        try:
+            self.item.use(1)
+        except ValueError:
+            raise ActionInterruptException(f"{self.item.definition.name} cannot be used as it has been consumed.")
+
+        # Increase pet motives
+        effects = self.item.definition.effect(pet.personality)
+        pet.motives.add_stats(effects)
+
+    def on_complete(self, pet: Pet) -> None:
+        pass
+
 class PlayAction(Action):
-    PLAY_TICKS = 2
+    PLAY_TICKS = 1
     def __init__(self, play_item: ItemInstance) -> None:
         super().__init__("play", self.PLAY_TICKS)
         if "playable" not in play_item.definition.tags:
@@ -66,15 +92,15 @@ class PlayAction(Action):
         self.play_item = play_item
 
     def on_tick(self, pet: Pet) -> None:
-        """Increase fun and social stats each tick."""
+        """Increase fun and social motives each tick."""
         # Decrease item durability
         try:
             self.play_item.use(1)
         except ValueError:
             raise ActionInterruptException(f"{self.play_item.definition.name} cannot be used as it has been consumed.")
-        # Increase pet stats
+        # Increase pet motives
         effects = self.play_item.definition.effect(pet.personality)
-        pet.stats.add_stats(effects)
+        pet.motives.add_stats(effects)
 
     def on_complete(self, pet: Pet) -> None:
         pass
@@ -88,15 +114,15 @@ class EatAction(Action):
         self.food_item = food_item
 
     def on_tick(self, pet: Pet) -> None:
-        """Increase hunger and health stats each tick."""
+        """Increase hunger and health motives each tick."""
         # Decrease item quantity
         try:
             self.food_item.use(1)
         except ValueError:
             raise ActionInterruptException(f"{self.food_item.definition.name} cannot be used as it has been consumed.")
-        # Increase pet stats
+        # Increase pet motives
         effects = self.food_item.definition.effect(pet.personality)
-        pet.stats.add_stats(effects)
+        pet.motives.add_stats(effects)
 
     def on_complete(self, pet: Pet) -> None:
         pass
